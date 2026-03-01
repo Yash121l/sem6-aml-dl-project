@@ -1,0 +1,99 @@
+Feature,Issue Found,Severity,Planned Action in Preprocessing
+Flow Bytes/s,"Infinite values (1,509 rows, 0.05%)",High,Replace ±inf with column 99.9th percentile of finite values
+Flow Packets/s,"Infinite values (2,867 rows, 0.09%)",High,Replace ±inf with column 99.9th percentile of finite values
+Flow Bytes/s,"NaN values (289,960 rows, 9.296%)",High,Drop rows if >5% affected; else impute with benign median
+Source Port,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Avg Bulk Rate,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Avg Bytes/Bulk,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Header Length.1,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Avg Bwd Segment Size,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Avg Fwd Segment Size,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Average Packet Size,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Down/Up Ratio,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+ECE Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+CWE Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+URG Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+ACK Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+PSH Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+RST Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+SYN Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+FIN Flag Count,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Packet Length Variance,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Packet Length Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Avg Packets/Bulk,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Avg Bytes/Bulk,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Max Packet Length,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+min_seg_size_forward,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Idle Max,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Idle Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Idle Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Active Min,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Active Max,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Active Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Active Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+act_data_pkt_fwd,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Avg Packets/Bulk,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Init_Win_bytes_backward,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Init_Win_bytes_forward,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Subflow Bwd Bytes,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Subflow Bwd Packets,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Subflow Fwd Bytes,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Subflow Fwd Packets,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Avg Bulk Rate,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Packet Length Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Min Packet Length,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Destination Port,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Packet Length Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Flow IAT Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Flow Packets/s,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Packet Length Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Packet Length Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Packet Length Min,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Packet Length Max,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Packet Length Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Packet Length Min,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Flow IAT Max,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Packet Length Max,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Total Length of Bwd Packets,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Total Length of Fwd Packets,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Total Backward Packets,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Total Fwd Packets,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Flow Duration,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Protocol,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Flow IAT Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Flow IAT Min,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Packets/s,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd IAT Min,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Packets/s,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd Header Length,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd Header Length,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd URG Flags,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd URG Flags,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd PSH Flags,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd PSH Flags,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd IAT Max,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd IAT Total,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd IAT Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd IAT Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Bwd IAT Total,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd IAT Min,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd IAT Max,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd IAT Std,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Fwd IAT Mean,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Idle Min,"NaN values (288,602 rows, 9.252%)",High,Drop rows if >5% affected; else impute with benign median
+Flow Duration,Negative values in non-negative column (115 rows),Medium,Clip to 0 (floor at zero)
+Flow Bytes/s,Negative values in non-negative column (85 rows),Medium,Clip to 0 (floor at zero)
+Flow Packets/s,Negative values in non-negative column (115 rows),Medium,Clip to 0 (floor at zero)
+Fwd Header Length,Negative values in non-negative column (35 rows),Medium,Clip to 0 (floor at zero)
+Bwd Header Length,Negative values in non-negative column (22 rows),Medium,Clip to 0 (floor at zero)
+Fwd Header Length.1,Negative values in non-negative column (35 rows),Medium,Clip to 0 (floor at zero)
+Init_Win_bytes_forward,"Negative values in non-negative column (1,001,189 rows)",Medium,Clip to 0 (floor at zero)
+Init_Win_bytes_backward,"Negative values in non-negative column (1,441,552 rows)",Medium,Clip to 0 (floor at zero)
+min_seg_size_forward,Negative values in non-negative column (35 rows),Medium,Clip to 0 (floor at zero)
+All columns,"Duplicate rows (288,804, 9.26%)",Medium,Drop exact duplicates before train/test split
+"Fwd Avg Bytes/Bulk, Bwd URG Flags, Bwd Avg Packets/Bulk, Fwd Avg Bulk Rate, Bwd PSH Flags…",Zero/near-zero variance (8 columns),Medium,Remove entirely (no discriminating power)
+55 features (e.g. Total Length of Fwd Packets),High skewness |skew| > 2.0 in 55 features,High,Apply log1p transform to all non-negative highly-skewed features
+16 correlated pairs,16 feature pairs with |r| > 0.95 (multicollinearity),Medium,"For each pair, drop the feature with lower mutual information score"
+All features,Widely varying scale across features (coefficient of variation >> 1),High,StandardScaler (fit on benign train set only; transform all)
+Dataset,Class imbalance: 3:1 (benign:minority attack),Low,Not an issue for training (train on benign only); use AUROC/AP for evaluation
+All features,High dimensionality: 80 features; 4 PCs explain 90% variance,Medium,Apply PCA retaining 4 components after scaling (or use MI-based feature selection)
