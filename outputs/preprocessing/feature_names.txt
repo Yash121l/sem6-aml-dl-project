@@ -1,0 +1,34 @@
+feat_fwd_bwd_pkt_ratio
+feat_fwd_bwd_byte_ratio
+Total Length of Bwd Packets
+Packet Length Variance
+Total Backward Packets
+Average Packet Size
+feat_inter_Flow_IAT_Max_div_Fwd_Header_Length
+feat_burst_intensity
+Fwd Packet Length Mean
+Init_Win_bytes_backward
+feat_byte_entropy_approx
+Bwd Packet Length Std
+feat_payload_ratio
+Fwd Packet Length Std
+Bwd IAT Min
+Bwd IAT Total
+Subflow Fwd Bytes
+Bwd IAT Std
+Bwd Packets/s
+Down/Up Ratio
+feat_inter_Fwd_IAT_Max_div_Flow_IAT_Max
+Bwd Packet Length Min
+Protocol
+feat_inter_Fwd_IAT_Max_x_Flow_IAT_Max
+feat_inter_Flow_IAT_Max_x_Flow_Duration
+Flow IAT Std
+Fwd IAT Std
+Flow IAT Min
+PSH Flag Count
+Flow Bytes/s
+Init_Win_bytes_forward
+min_seg_size_forward
+Min Packet Length
+feat_inter_Flow_IAT_Max_div_Flow_Duration
