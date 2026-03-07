@@ -1,2 +1,54 @@
-data/CICIDS2017/*
+# ─── Dataset (large files — download separately, see data/README.md) ──────────
+data/CICIDS2017/
+data/raw/
+data/processed/
+
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Jupyter ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ─── Model / data binaries (save Model A explicitly) ─────────────────────────
 *.npy
+*.pkl
+!models/model_a_*.pkl
+!models/model_a_*.npy
+
+# ─── Environment & secrets ────────────────────────────────────────────────────
+.env
+.env.*
+secrets/
+
+# ─── OS / IDE ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# ─── Virtual environments ─────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+
+# ─── LaTeX build artifacts ────────────────────────────────────────────────────
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.bbl
+report/*.blg
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
