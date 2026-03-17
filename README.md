@@ -26,9 +26,8 @@ the subsequent deep-learning phase.
 
 | Name | Role |
 |------|------|
-| Team Member 1 | EDA, preprocessing pipeline |
-| Team Member 2 | Model training, evaluation |
-| Team Member 3 | Report, architecture |
+| Yash L. | EDA, preprocessing pipeline, report |
+| Rishabh | Model training, evaluation, architecture |
 
 ## Repository Structure
 
@@ -74,7 +73,7 @@ adaptive-cyber-security/
 │   └── phase1_report.tex          # IEEE conference LaTeX report
 │
 └── presentation/
-    └── slide_outline.md           # 10-slide outline with speaker notes
+    └── phase1_presentation.pdf           # 10-slide
 ```
 
 ## Phase 1 Results — Model A (Gaussian Mixture Model)
@@ -123,8 +122,8 @@ Model A hyperparameters: `n_components=12`, `covariance_type='full'`, `threshold
 ## Quick Start
 
 ```bash
-git clone https://github.com/<your-org>/adaptive-cyber-security.git
-cd adaptive-cyber-security
+git clone https://github.com/Yash121l/sem6-aml-dl-project.git
+cd sem6-aml-dl-project
 pip install -r requirements.txt
 
 # Download CICIDS-2017 from https://www.unb.ca/cic/datasets/ids-2017.html
