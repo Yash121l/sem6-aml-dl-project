@@ -1,0 +1,2 @@
+model,precision,recall,f1,auc,ks_stat_benign_attack,threshold,threshold_percentile,train_time_s,inference_ms_per_seq,total_params,best_epoch,actual_epochs,best_val_loss,window_size,latent_dim,batch_size,evaluation_strategy
+LSTM-AE,0.4699206383564054,1.0,0.6393823259490364,0.52191574469776,0.031060956895885727,0.5286135524511337,5,0.0,0.8278444815777268,262978,1,1,,50,32,256,per-flow AUC (window scores aggregated to flow level)
