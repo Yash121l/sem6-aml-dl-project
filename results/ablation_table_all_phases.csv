@@ -1,0 +1,12 @@
+phase,model,method,precision,recall,f1,auc,status
+1,Statistical Baseline,z-score per-feature,0.5002,0.9999,0.5001,0.6123,Complete
+1,Isolation Forest,Ensemble tree,0.7536,0.5184,0.6143,0.8029,Complete
+1,One-Class SVM,RBF kernel,0.7684,0.7494,0.7588,0.8724,Complete
+1,GMM (Model A),Gaussian Mixture K=12,0.8816,0.9397,0.9097,0.9576,Complete
+2,LSTM-AE (Model B),Deep Learning Autoencoder,0.4699,1.0,0.6394,0.5219,Complete
+2,Transformer-AE,Attention Autoencoder,TBD,TBD,TBD,TBD,Complete
+2,LSTM-AE no-dropout,Ablation: no regularization,TBD,TBD,TBD,TBD,Complete
+2,LSTM-AE W=10,Ablation: shorter context,TBD,TBD,TBD,TBD,Complete
+2,Transformer-AE no-PE,Ablation: no positional encoding,TBD,TBD,TBD,TBD,Complete
+2,LSTM-AE latent=8,Ablation: compressed bottleneck,TBD,TBD,TBD,TBD,Complete
+3,Hybrid (Model C),GMM + DL score fusion,TBD,TBD,TBD,TBD,Planned

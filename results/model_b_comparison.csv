@@ -1,0 +1,3 @@
+Model,F1,AUC,Precision,Recall,KS,Params
+LSTM-AE,0.6394,0.5219,0.4699,1.0,0.0311,262978
+Transformer-AE,0.6394,0.5237,0.4699,1.0,0.0342,167906

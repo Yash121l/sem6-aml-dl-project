@@ -1,0 +1,6 @@
+variant,description,window_size,latent_dim,dropout,positional_encoding,params,f1,auc,delta_f1_vs_base,delta_auc_vs_base
+baseline_lstm_ae,Full LSTM-AE (Model B),50,32,0.2,N/A,262978,0.6394,0.5219,0.0,0.0
+no_dropout,LSTM-AE without dropout,50,32,0.0,N/A,262978,TBD,TBD,TBD,TBD
+window_10,LSTM-AE with W=10 window,10,32,0.2,N/A,262978,TBD,TBD,TBD,TBD
+no_pe,Transformer-AE without positional encoding,50,32,0.1,False,167906,TBD,TBD,TBD,TBD
+latent_8,LSTM-AE with latent dim=8,50,8,0.2,N/A,TBD,TBD,TBD,TBD,TBD

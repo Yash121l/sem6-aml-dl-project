@@ -1,0 +1,2 @@
+model,precision,recall,f1,auc,ks_stat,threshold,train_time_s,inference_ms_per_seq,total_params,best_val_loss,actual_epochs,window_size,latent_dim
+Transformer-AE,0.4699186696681432,1.0,0.6393805036495449,0.523680390620193,0.03418500085627507,0.35188991844654083,0.0,0.5572012546101116,167906,,0,50,32
