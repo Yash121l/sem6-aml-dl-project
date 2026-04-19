@@ -432,6 +432,220 @@ class GMMDetector(AnomalyDetector):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# LSTM Autoencoder  (Model B — Phase 2)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class LSTMAEDetector:
+    """
+    LSTM Autoencoder anomaly detector for sequence-based intrusion detection.
+    Model B in the Phase 2 ablation study.
+
+    Trains on windows of W consecutive benign flows and detects anomalies via
+    reconstruction error:  score(X) = mean ||X - decode(encode(X))||²
+
+    Parameters
+    ----------
+    window_size : int
+        Flows per sequence window (default 50).
+    latent_dim : int
+        Bottleneck dimension — 32 gives 53× compression of a (50,34) window.
+    dropout_rate : float
+        Dropout applied after each LSTM encoder/decoder layer.
+    """
+
+    def __init__(
+        self,
+        window_size: int = 50,
+        latent_dim: int = 32,
+        dropout_rate: float = 0.2,
+    ) -> None:
+        self.window_size   = window_size
+        self.latent_dim    = latent_dim
+        self.dropout_rate  = dropout_rate
+        self.model         = None
+        self.threshold     = None
+        self._feature_dim  = None
+
+    # ------------------------------------------------------------------
+    def fit(
+        self,
+        X_train_seq: np.ndarray,
+        X_val_seq: Optional[np.ndarray] = None,
+        epochs: int = 100,
+        batch_size: int = 256,
+        patience: int = 10,
+    ) -> "LSTMAEDetector":
+        """
+        Train the LSTM autoencoder on benign-only sequences.
+
+        Parameters
+        ----------
+        X_train_seq : (n_windows, window_size, n_features)
+            Benign sliding-window sequences.
+        X_val_seq : optional validation sequences for early stopping.
+        """
+        import tensorflow as tf
+        from tensorflow.keras.models import Model as KModel
+        from tensorflow.keras.layers import (
+            Input, LSTM, Dense, Dropout, RepeatVector, TimeDistributed,
+        )
+        from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+
+        tf.random.set_seed(42)
+        self._feature_dim = X_train_seq.shape[2]
+        W = self.window_size
+        F = self._feature_dim
+        L = self.latent_dim
+        D = self.dropout_rate
+
+        inp  = Input(shape=(W, F), name="input")
+        x    = LSTM(128, return_sequences=True,  name="enc_lstm1")(inp)
+        x    = Dropout(D, name="enc_drop1")(x)
+        x    = LSTM(64,  return_sequences=False, name="enc_lstm2")(x)
+        x    = Dropout(D, name="enc_drop2")(x)
+        z    = Dense(L, activation="relu", name="latent")(x)
+        x    = RepeatVector(W, name="repeat")(z)
+        x    = LSTM(64,  return_sequences=True,  name="dec_lstm1")(x)
+        x    = Dropout(D, name="dec_drop1")(x)
+        x    = LSTM(128, return_sequences=True,  name="dec_lstm2")(x)
+        x    = Dropout(D, name="dec_drop2")(x)
+        out  = TimeDistributed(Dense(F, activation="linear"), name="output")(x)
+
+        self.model = KModel(inp, out, name="lstm_autoencoder")
+        self.model.compile(
+            optimizer=tf.keras.optimizers.Adam(1e-3, clipnorm=1.0),
+            loss="mse",
+        )
+
+        callbacks = [
+            EarlyStopping(
+                monitor="val_loss", patience=patience,
+                restore_best_weights=True, verbose=0,
+            ),
+            ReduceLROnPlateau(
+                monitor="val_loss", factor=0.5, patience=5, min_lr=1e-6, verbose=0,
+            ),
+        ]
+        val_data = (X_val_seq, X_val_seq) if X_val_seq is not None else None
+        self.model.fit(
+            X_train_seq, X_train_seq,
+            validation_data=val_data,
+            epochs=epochs,
+            batch_size=batch_size,
+            callbacks=callbacks,
+            verbose=0,
+        )
+        return self
+
+    # ------------------------------------------------------------------
+    def score(self, X_seq: np.ndarray) -> np.ndarray:
+        """
+        Per-sequence anomaly score = mean MSE over all timesteps and features.
+
+        score(X) = (1 / W*F) * Σ ||x_t - x̂_t||²
+
+        Higher scores indicate greater anomaly likelihood.
+
+        Parameters
+        ----------
+        X_seq : (n_windows, window_size, n_features)
+        """
+        if self.model is None:
+            raise RuntimeError("Call fit() or load() before score().")
+        X_hat = self.model.predict(X_seq, batch_size=512, verbose=0)
+        return np.mean(np.square(X_seq - X_hat), axis=(1, 2))
+
+    # ------------------------------------------------------------------
+    def predict(self, X_seq: np.ndarray) -> np.ndarray:
+        """
+        Binary predictions using the fitted threshold.
+
+        Returns
+        -------
+        np.ndarray of int  — 1 = anomaly, 0 = benign.
+        """
+        if self.threshold is None:
+            raise RuntimeError("Set threshold via set_threshold() before predict().")
+        return (self.score(X_seq) > self.threshold).astype(int)
+
+    # ------------------------------------------------------------------
+    def set_threshold(
+        self,
+        X_val_benign_seq: np.ndarray,
+        percentile: int = 95,
+    ) -> float:
+        """
+        Calibrate decision threshold from validation benign sequences.
+
+        Uses the ``percentile``-th percentile of benign reconstruction errors,
+        ensuring the threshold is not tuned on the test set.
+        """
+        val_scores    = self.score(X_val_benign_seq)
+        self.threshold = float(np.percentile(val_scores, percentile))
+        return self.threshold
+
+    # ------------------------------------------------------------------
+    def evaluate(
+        self,
+        X_seq: np.ndarray,
+        y_seq: np.ndarray,
+    ) -> Dict[str, float]:
+        """
+        Full evaluation metrics on sequence-labelled data.
+
+        Parameters
+        ----------
+        X_seq : (n_windows, window_size, n_features)
+        y_seq : (n_windows,) binary — 1 = anomalous window, 0 = benign.
+        """
+        scores = self.score(X_seq)
+        y_pred = (scores > self.threshold).astype(int)
+        return {
+            "precision": float(precision_score(y_seq, y_pred, zero_division=0)),
+            "recall":    float(recall_score(y_seq, y_pred, zero_division=0)),
+            "f1":        float(f1_score(y_seq, y_pred, zero_division=0)),
+            "auc":       float(roc_auc_score(y_seq, scores)),
+            "threshold": self.threshold,
+        }
+
+    # ------------------------------------------------------------------
+    def save(self, path: Union[str, pathlib.Path]) -> None:
+        """Save Keras model, threshold, and hyperparameters."""
+        path = pathlib.Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self.model.save(str(path) + "_model.keras")
+        np.save(str(path) + "_threshold.npy", np.array(self.threshold))
+        joblib.dump(
+            {
+                "window_size":   self.window_size,
+                "latent_dim":    self.latent_dim,
+                "dropout_rate":  self.dropout_rate,
+                "_feature_dim":  self._feature_dim,
+            },
+            str(path) + "_params.pkl",
+        )
+        print(f"LSTMAEDetector saved → {path}[_model.keras / _threshold.npy / _params.pkl]")
+
+    # ------------------------------------------------------------------
+    @classmethod
+    def load(cls, path: Union[str, pathlib.Path]) -> "LSTMAEDetector":
+        """Load a previously saved LSTMAEDetector."""
+        import tensorflow as tf
+
+        path   = pathlib.Path(path)
+        params = joblib.load(str(path) + "_params.pkl")
+        obj    = cls(
+            window_size  = params["window_size"],
+            latent_dim   = params["latent_dim"],
+            dropout_rate = params["dropout_rate"],
+        )
+        obj._feature_dim = params["_feature_dim"]
+        obj.model        = tf.keras.models.load_model(str(path) + "_model.keras")
+        obj.threshold    = float(np.load(str(path) + "_threshold.npy"))
+        return obj
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Smoke test
 # ──────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
