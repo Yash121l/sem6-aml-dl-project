@@ -1,0 +1,8 @@
+Phase,Model,Type,P,R,F1,AUC
+1,Statistical Baseline,Baseline,0.5,1.0,0.501,0.648
+1,Isolation Forest,ML,0.754,0.518,0.614,0.803
+1,One-Class SVM,ML,0.768,0.749,0.759,0.872
+1,GMM K=12 (Model A),ML,0.882,0.94,0.91,0.958
+2,LSTM-AE shuffled (Model B),DL,0.47,1.0,0.639,0.522
+3,LSTM-AE temporal (Model B),DL,0.4486,0.9147,0.602,0.5322
+3,Hybrid RF (Model C),Hybrid,0.9315,0.941,0.9363,0.9866
