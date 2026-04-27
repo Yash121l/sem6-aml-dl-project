@@ -2,6 +2,7 @@
 
 [![Phase 1](https://img.shields.io/badge/Phase%201-Complete-brightgreen)]()
 [![Phase 2](https://img.shields.io/badge/Phase%202-Complete-brightgreen)]()
+[![Phase 3](https://img.shields.io/badge/Phase%203-Complete-brightgreen)]()
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
@@ -140,8 +141,9 @@ Model A hyperparameters: `n_components=12`, `covariance_type='full'`, `threshold
 | Isolation Forest | 1 | Ensemble | 61.4% | 80.3% | Complete |
 | One-Class SVM | 1 | Kernel | 75.9% | 87.2% | Complete |
 | **GMM (Model A)** | **1** | **Gaussian Mixture** | **90.97%** | **95.76%** | **Complete** |
-| **LSTM-AE (Model B)** | **2** | **Deep Learning AE** | **63.94%** | **52.19%** | **Complete** |
-| Hybrid (Model C) | 3 | GMM + DL ensemble | TBD | TBD | Planned |
+| LSTM-AE shuffled (Model B) | 2 | Deep Learning AE | 63.94% | 52.19% ← artefact | Complete |
+| LSTM-AE temporal (Model B) | 3 | Deep Learning AE | 60.2% | 53.22% | Complete |
+| **Hybrid RF (Model C)** | **3** | **GMM + LSTM + RF** | **93.63%** | **98.66%** | **Complete** |
 
 ## Quick Start
 
@@ -192,7 +194,53 @@ Phase 2: 121,464 training windows (W=50, stride=10), 716,043 test windows (strid
 |-------|-------------|--------|--------|
 | Phase 1 | ML baseline — Model A (GMM) | **Complete** | 30% |
 | Phase 2 | Deep Learning — Model B (LSTM-AE + Transformer-AE) | **Complete** | 30% |
-| Phase 3 | Hybrid ensemble — Model C (GMM + DL score fusion) | Planned | 40% |
+| Phase 3 | Hybrid ensemble — Model C (GMM + RF fusion) | **Complete** | 40% |
+
+## Phase 3 Results — Model C (Hybrid Random Forest)
+
+| Metric | Value | Note |
+|--------|-------|------|
+| **F1-Score** | **93.63%** | Best across all phases |
+| **AUC-ROC** | **98.66%** | +2.90pp over GMM alone |
+| Precision | 93.15% | |
+| Recall | 94.10% | |
+| False Negative Rate | 5.90% | 19,838 missed attacks |
+| False Positive Rate | 6.13% | 23,272 false alarms |
+
+### Phase 3 Highlights
+
+- **Temporal evaluation fix**: `train_test_split(shuffle=True)` in Phase 1 destroyed temporal ordering, making every test window contain ~23 attack flows (AUC ≈ 0.52). Reordering by CICIDS-2017 day structure fixes this.
+- **Fusion**: GMM and LSTM-AE scores normalised to [0,1] (val-set calibrated), then fused via Random Forest meta-learner trained on val benign + 20% stratified test.
+- **LR surrogate**: s_C = σ(-4.67 + 137.45·s_GMM + 2.26·s_LSTM) — GMM dominates 60.8× over LSTM-AE, consistent with AUC 95.76% vs 53.22%.
+- **Concept drift**: Page-Hinckley test (λ=50) monitors GMM log-likelihood stream. O(1) per flow. Detected 1 drift event at flow 379,600 (FTP-Patator onset).
+
+### Hybrid Ablation
+
+| Variant | F1 | AUC |
+|---------|-----|-----|
+| Full Hybrid RF (Model C) | **93.63%** | **98.66%** |
+| GMM only | 74.4% | 95.76% |
+| LSTM only | 60.2% | 53.22% |
+| Equal weight (α=0.5) | 63.9% | 56.75% |
+
+Removing GMM costs -33.4pp F1 (dominant component). Removing LSTM costs -19.2pp F1 (complementary signal for borderline GMM flows).
+
+### Phase 3 New Files
+
+| Path | Description |
+|------|-------------|
+| `notebooks/stage7_phase3_temporal.ipynb` | Temporal reordering + score extraction |
+| `notebooks/stage8_phase3_hybrid.ipynb` | Three fusion methods + Model C training |
+| `notebooks/stage9_phase3_ablation.ipynb` | Ablation tables + architecture diagram |
+| `models/model_c_meta_lr.pkl` | LR meta-learner (interpretable surrogate) |
+| `models/concept_drift_detector.pkl` | Page-Hinckley drift detector |
+| `outputs/phase3/` | 22 arrays + 8 plots |
+| `results/ablation_table_complete_all_phases.csv` | 7-row cross-phase ablation |
+| `results/phase3_hybrid_ablation.csv` | 4-row hybrid ablation |
+| `results/failure_analysis_per_attack.csv` | Per-attack FN/FP breakdown |
+| `report/phase3_report.tex` | IEEE-format LaTeX report |
+| `presentation/all_phase3.md` | 10-slide presentation content |
+| `src/models.py` | + HybridDetector class |
 
 ## References
 
