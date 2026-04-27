@@ -646,6 +646,230 @@ class LSTMAEDetector:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Hybrid Detector  (Model C — Phase 3)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class HybridDetector:
+    """
+    Hybrid anomaly detector combining GMM (Model A) and LSTM-AE (Model B).
+    Model C in the Phase 3 ablation study.
+
+    Architecture
+    ------------
+    For each flow x_i:
+      1. GMM score   : s_GMM  = -log p_GMM(x_i)          (flow-level, no context)
+      2. LSTM score  : s_LSTM = mean MSE(window containing x_i)  (temporal context)
+      3. Both normalised to [0,1] using val-set min/max.
+      4. Meta-learner: P(attack | s_GMM, s_LSTM) via RF or logistic regression.
+
+    The meta-learner is trained on val benign (y=0) + a stratified fraction of
+    the temporal test set.  Threshold = 0.5 on predicted probability.
+
+    Parameters
+    ----------
+    gmm_model : sklearn GaussianMixture (already fitted)
+    lstm_ae_model : tf.keras.Model (already fitted LSTM-AE)
+    meta_learner : fitted sklearn estimator or None
+        If None, uses weighted average with alpha.
+    alpha : float
+        GMM weight in weighted average (used when meta_learner is None).
+    window_size : int
+        Sliding window length for LSTM-AE sequences.
+    stride : int
+        Stride for test-set sequences (default 25 for memory efficiency).
+    val_gmm_min, val_gmm_max : float
+        Min/max of GMM neg-LL on validation benign flows (for normalisation).
+    val_lstm_min, val_lstm_max : float
+        Min/max of LSTM MSE on validation benign sequences.
+    """
+
+    def __init__(
+        self,
+        gmm_model,
+        lstm_ae_model,
+        meta_learner=None,
+        alpha: float = 0.7,
+        window_size: int = 50,
+        stride: int = 25,
+        val_gmm_min: float = 0.0,
+        val_gmm_max: float = 1.0,
+        val_lstm_min: float = 0.0,
+        val_lstm_max: float = 1.0,
+    ) -> None:
+        self.gmm_model     = gmm_model
+        self.lstm_ae_model = lstm_ae_model
+        self.meta_learner  = meta_learner
+        self.alpha         = alpha
+        self.window_size   = window_size
+        self.stride        = stride
+        self.val_gmm_min   = val_gmm_min
+        self.val_gmm_max   = val_gmm_max
+        self.val_lstm_min  = val_lstm_min
+        self.val_lstm_max  = val_lstm_max
+
+    # ------------------------------------------------------------------
+    def _gmm_scores(self, X: np.ndarray) -> np.ndarray:
+        raw = -self.gmm_model.score_samples(X)
+        return np.clip(
+            (raw - self.val_gmm_min) / (self.val_gmm_max - self.val_gmm_min + 1e-8),
+            0.0, 1.0,
+        )
+
+    def _lstm_scores(self, X: np.ndarray) -> np.ndarray:
+        n = len(X)
+        W = self.window_size
+        s = self.stride
+
+        starts = range(0, max(1, n - W + 1), s)
+        seq_batch = np.array(
+            [X[t : t + W] for t in starts if t + W <= n], dtype=np.float32
+        )
+        if len(seq_batch) == 0:
+            return np.zeros(n)
+
+        recon  = self.lstm_ae_model.predict(seq_batch, batch_size=256, verbose=0)
+        w_mse  = np.mean(np.square(seq_batch - recon), axis=(1, 2))
+
+        flow_sum = np.zeros(n)
+        flow_cnt = np.zeros(n, dtype=np.int32)
+        for i, t in enumerate(starts):
+            if i >= len(w_mse):
+                break
+            flow_sum[t : t + W] += w_mse[i]
+            flow_cnt[t : t + W] += 1
+
+        flow_raw = np.where(flow_cnt > 0, flow_sum / flow_cnt, 0.0)
+        return np.clip(
+            (flow_raw - self.val_lstm_min) / (self.val_lstm_max - self.val_lstm_min + 1e-8),
+            0.0, 1.0,
+        )
+
+    # ------------------------------------------------------------------
+    def score(self, X: np.ndarray) -> np.ndarray:
+        """
+        Return hybrid anomaly scores in [0, 1].
+
+        If a meta_learner is fitted, returns P(attack | s_GMM, s_LSTM).
+        Otherwise returns alpha * s_GMM + (1 - alpha) * s_LSTM.
+
+        Parameters
+        ----------
+        X : (n_flows, n_features) — raw preprocessed flow features.
+        """
+        s_gmm  = self._gmm_scores(X)
+        s_lstm = self._lstm_scores(X)
+
+        if self.meta_learner is not None:
+            X_meta = np.column_stack([s_gmm, s_lstm])
+            return self.meta_learner.predict_proba(X_meta)[:, 1]
+        return self.alpha * s_gmm + (1.0 - self.alpha) * s_lstm
+
+    # ------------------------------------------------------------------
+    def predict(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+        """
+        Binary predictions: 1 = attack, 0 = benign.
+
+        Parameters
+        ----------
+        X : (n_flows, n_features)
+        threshold : decision boundary on the hybrid score (default 0.5).
+        """
+        return (self.score(X) >= threshold).astype(int)
+
+    # ------------------------------------------------------------------
+    def evaluate(
+        self, X: np.ndarray, y: np.ndarray, threshold: float = 0.5
+    ) -> Dict[str, float]:
+        """
+        Compute evaluation metrics on labelled flow data.
+
+        Parameters
+        ----------
+        X : (n_flows, n_features)
+        y : (n_flows,) binary — 1 = attack, 0 = benign.
+        threshold : float, decision threshold (default 0.5).
+
+        Returns
+        -------
+        dict with precision, recall, f1, auc, fpr, fnr.
+        """
+        scores = self.score(X)
+        y_pred = (scores >= threshold).astype(int)
+
+        cm = confusion_matrix(y, y_pred, labels=[0, 1])
+        tn, fp, fn, tp = cm.ravel() if cm.size == 4 else (0, 0, 0, 0)
+        n_neg = tn + fp
+        n_pos = tp + fn
+
+        return {
+            "precision": float(precision_score(y, y_pred, zero_division=0)),
+            "recall":    float(recall_score(y, y_pred, zero_division=0)),
+            "f1":        float(f1_score(y, y_pred, zero_division=0)),
+            "auc":       float(roc_auc_score(y, scores)),
+            "fpr":       fp / n_neg if n_neg > 0 else 0.0,
+            "fnr":       fn / n_pos if n_pos > 0 else 0.0,
+            "tp": int(tp), "fp": int(fp), "tn": int(tn), "fn": int(fn),
+        }
+
+    # ------------------------------------------------------------------
+    def save(self, path: Union[str, pathlib.Path]) -> None:
+        """
+        Persist the HybridDetector to disk.
+
+        Saves: {path}_hybrid.pkl  (this object, excluding Keras model)
+               {path}_meta.pkl    (meta-learner, if not None)
+        The GMM is already saved separately by GMMDetector.save().
+        The LSTM-AE Keras model should be saved via LSTMAEDetector.save().
+        """
+        path = pathlib.Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Save meta-learner separately so it can be loaded without Keras/GMM
+        if self.meta_learner is not None:
+            joblib.dump(self.meta_learner, str(path) + "_meta.pkl")
+
+        # Save scalars + config (not the heavy Keras / GMM objects)
+        params = {
+            "alpha":        self.alpha,
+            "window_size":  self.window_size,
+            "stride":       self.stride,
+            "val_gmm_min":  self.val_gmm_min,
+            "val_gmm_max":  self.val_gmm_max,
+            "val_lstm_min": self.val_lstm_min,
+            "val_lstm_max": self.val_lstm_max,
+        }
+        joblib.dump(params, str(path) + "_hybrid.pkl")
+        print(f"HybridDetector saved → {path}[_hybrid.pkl / _meta.pkl]")
+
+    # ------------------------------------------------------------------
+    @classmethod
+    def load(
+        cls,
+        path: Union[str, pathlib.Path],
+        gmm_model,
+        lstm_ae_model,
+    ) -> "HybridDetector":
+        """
+        Load a persisted HybridDetector.
+
+        Parameters
+        ----------
+        path : str or Path — same prefix used in save().
+        gmm_model : fitted GaussianMixture (load separately).
+        lstm_ae_model : fitted Keras model (load separately).
+        """
+        path   = pathlib.Path(path)
+        params = joblib.load(str(path) + "_hybrid.pkl")
+
+        meta_path = pathlib.Path(str(path) + "_meta.pkl")
+        meta = joblib.load(meta_path) if meta_path.exists() else None
+
+        obj = cls(gmm_model=gmm_model, lstm_ae_model=lstm_ae_model,
+                  meta_learner=meta, **params)
+        return obj
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Smoke test
 # ──────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
